@@ -1,0 +1,1 @@
+"""VitalApp Backend - FastAPI application"""
