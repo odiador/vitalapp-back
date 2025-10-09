@@ -13,11 +13,13 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 
 def override_get_db():
     """Override database dependency for testing"""
+    db = None
     try:
         db = TestingSessionLocal()
         yield db
     finally:
-        db.close()
+        if db:
+            db.close()
 
 
 @pytest.fixture(scope="function")
