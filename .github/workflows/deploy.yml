@@ -1,0 +1,62 @@
+name: CI/CD con tests y deploy
+
+on:
+  push:
+    branches: [ deploy ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+    - name: 📥 Checkout del código
+      uses: actions/checkout@v4
+
+    - name: 🐍 Instalar Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+
+    - name: 📦 Instalar dependencias
+      run: |
+        pip install -r requirements.txt
+
+    - name: 🧪 Ejecutar tests
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+        SUPABASE_URL: https://fake.supabase.co
+        SUPABASE_KEY: fake-key
+        SUPABASE_SERVICE_KEY: fake-service-key
+      run: |
+        pytest -v
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 🚀 Desplegar en Render
+      run: |
+        echo "Desplegando en Render..."
+        curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
+      
+    - name: ✅ Notificar despliegue exitoso
+      if: success()
+      run: |
+        echo "✅ Despliegue completado exitosamente"
