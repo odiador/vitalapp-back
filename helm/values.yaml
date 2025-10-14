@@ -1,0 +1,10 @@
+replicaCount: 2
+
+image:
+  repository: vitalapp-back
+  pullPolicy: IfNotPresent
+  tag: latest
+
+service:
+  type: ClusterIP
+  port: 80
