@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ main, develop, 'feature/**' ]
+    branches: [ deploy ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ deploy ]
 
 jobs:
   lint:
@@ -69,3 +69,17 @@ jobs:
       - name: Build Docker image (no push)
         run: |
           docker build -f Dockerfile.prod -t vitalapp-back:ci .
+  deploy:
+    needs: docker-build
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Desplegar en Render
+      run: |
+        echo "Desplegando en Render..."
+        curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
+      
+    - name: Notificar despliegue exitoso
+      if: success()
+      run: |
+        echo "Despliegue completado exitosamente"
